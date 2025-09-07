@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext } from 'react';  // Import React and useContext hook
 import './main.css'; // Import custom CSS styles
 import { assets } from '../../assets/assets'; // Import assets like icons and images
 import { Context } from '../../context/Context'; // Import the Context to access shared state
@@ -14,20 +14,23 @@ function Main() {
     <div className='main'>
       {/* Navigation Bar */}
       <div className='nav'>
-        <p>Gemini</p>
-        <img src={assets.user_icon} alt="User Icon" /> {/* Display user icon */}
+        <p>Gemini</p>  {/* App name */}
+        <img src={assets.user_icon} alt="User Icon" />  {/* Display user icon */}
       </div>
 
       <div className="main-container">
+        {/* Conditional rendering based on showResult */}
         {/* If showResult is false, display the initial UI (prompt cards) */}
         {!showResult ? (
           <>
             <div className="greet">
-              <p><span>Hello, Rahul</span></p>
-              <p>How can I Help You Today ?</p>
+              <p><span>Hello, Rahul</span></p> {/* Greet the user */}
+              <p>How can I Help You Today ?</p> {/* Display help text */}
             </div>
+
+            {/* Display suggestion cards for the user to choose from */}
             <div className='cards'>
-              {/* Display suggestion cards for the user to choose from */}
+              {/* Each card displays a different prompt suggestion */}
               <div className="card">
                 <p>Suggest beautiful places to see on an upcoming road trip</p>
                 <img src={assets.compass_icon} alt="Compass Icon" />
@@ -55,16 +58,17 @@ function Main() {
             </div>
             <div className="result-data">
               <img src={assets.gemini_icon} alt="Gemini Icon" />
-              {/* Ensure resultData is not empty before rendering */}
+              {/* Check if resultData is available before rendering */}
               {resultData ? (
-
-                <p dangerouslySetInnerHTML={{ __html: resultData }}></p> // Render result as HTML if available
-              ) : <div className='loader'>
-                <hr />
-                <hr />
-                <hr />
-              </div> 
-            }
+                <p dangerouslySetInnerHTML={{ __html: resultData }}></p>  // Render result as HTML
+              ) : (
+                // Display loading indicator if resultData is not available yet
+                <div className='loader'>
+                  <hr />
+                  <hr />
+                  <hr />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -76,19 +80,20 @@ function Main() {
             <input
               type="text"
               placeholder='Enter a prompt here'
-              onChange={(e) => setInput(e.target.value)} // Update input state on change
-              value={input} // Bind the input field to the state
+              onChange={(e) => setInput(e.target.value)}  // Update input state when the user types
+              value={input}  // Bind the input field to the state to reflect user input
             />
             <div>
-              <img src={assets.gallery_icon} alt="Gallery Icon" />
-              <img src={assets.menu_icon} alt="Menu Icon" />
-              {/* Trigger onSent function when the user clicks the send icon */}
+              <img src={assets.gallery_icon} alt="Gallery Icon" />  {/* Gallery icon */}
+              <img src={assets.menu_icon} alt="Menu Icon" />  {/* Menu icon */}
+              {/* Trigger the onSent function when the user clicks the send icon */}
               <img onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />
             </div>
           </div>
-          {/* Information about the privacy and reliability of Gemini */}
+
+          {/* Information about privacy and reliability of Gemini */}
           <p className='bottom-info'>
-            Gemini may display inaccurate info, including about people, so double-check its responses.
+            Gemini may display inaccurate info, including about people, so double-check its responses. {/* Privacy and disclaimer text */}
             Your privacy & Gemini Apps
           </p>
         </div>
@@ -97,4 +102,4 @@ function Main() {
   );
 }
 
-export default Main; // Export the Main component
+export default Main;  // Export the Main component for use in other parts of the app
