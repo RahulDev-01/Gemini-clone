@@ -10,11 +10,19 @@ function Main() {
   // Debugging: Log to check if `resultData` is populated
   console.log("resultData:", resultData);
 
+  // Handle "Enter" key press to trigger sending the prompt
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent default Enter key behavior (like submitting a form)
+      onSent(); // Call the onSent function to send the prompt
+    }
+  };
+
   return (
     <div className='main'>
       {/* Navigation Bar */}
       <div className='nav'>
-        <p>Gemini</p>  {/* App name */}
+        <p style={{fontWeight:400, cursor:'pointer'}} > Gemini</p>  {/* App name */}
         <img src={assets.user_icon} alt="User Icon" />  {/* Display user icon */}
       </div>
 
@@ -24,7 +32,7 @@ function Main() {
         {!showResult ? (
           <>
             <div className="greet">
-              <p><span>Hello, Rahul</span></p> {/* Greet the user */}
+              <p><span>Hello Dev's ,I am Rahul</span></p> {/* Greet the user */}
               <p>How can I Help You Today ?</p> {/* Display help text */}
             </div>
 
@@ -82,6 +90,7 @@ function Main() {
               placeholder='Enter a prompt here'
               onChange={(e) => setInput(e.target.value)}  // Update input state when the user types
               value={input}  // Bind the input field to the state to reflect user input
+              onKeyDown={handleKeyDown}  // Trigger onSent function on "Enter" key press
             />
             <div>
               <img src={assets.gallery_icon} alt="Gallery Icon" />  {/* Gallery icon */}
@@ -93,9 +102,9 @@ function Main() {
 
           {/* Information about privacy and reliability of Gemini */}
           <p className='bottom-info'>
-            Gemini may display inaccurate info, including about people, so double-check its responses. {/* Privacy and disclaimer text */}
-            Your privacy & Gemini Apps
+            Gemini may display inaccurate info, including about people, so double-check its responses. Created By {"<"} Savvana Rahul⚡{" >"} 
           </p>
+          
         </div>
       </div>
     </div>
