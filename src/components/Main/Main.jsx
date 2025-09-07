@@ -57,10 +57,14 @@ function Main() {
               <img src={assets.gemini_icon} alt="Gemini Icon" />
               {/* Ensure resultData is not empty before rendering */}
               {resultData ? (
+
                 <p dangerouslySetInnerHTML={{ __html: resultData }}></p> // Render result as HTML if available
-              ) : (
-                <p>Loading...</p> // Show loading message if no result is available
-              )}
+              ) : <div className='loader'>
+                <hr />
+                <hr />
+                <hr />
+              </div> 
+            }
             </div>
           </div>
         )}

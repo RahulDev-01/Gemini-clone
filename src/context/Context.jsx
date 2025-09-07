@@ -13,6 +13,13 @@ const ContextProvider = (props) => {
     const [loading, setLoading] = useState(false); // Loading state, shows a loading spinner while waiting for the response
     const [resultData, setResultData] = useState(""); // Stores the result data (could be text or image)
 
+    const delayPara = (index,nextWord)=>{
+        setTimeout(()=>{
+            setResultData(prev=>prev+nextWord);
+        },75*index)
+    }
+
+
     // Function that handles the logic for sending the prompt and receiving the result
     const onSent = async (prompt) => {
         // Reset the result data and set loading to true before sending the prompt
@@ -21,13 +28,43 @@ const ContextProvider = (props) => {
         setShowResult(true); // Show the result area once a request is made
         setRecentPrompt(input); // Store the current input as the recent prompt
 
-        // Call the main function (which sends the prompt to the API) and wait for the response
-        const response = await main(input); // Call the main function with the user's input
+        try {
+            // Call the main function (which sends the prompt to the API) and wait for the response
+            const response = await main(input); // Call the main function with the user's input
 
-        // Once the response is received, store it in the state
-        setResultData(response); // Save the response in the resultData state
-        setLoading(false); // Set loading to false once the request is completed
-        setInput(""); // Clear the input field after submitting the prompt
+            // Check if the response contains expected data
+            if (!response || typeof response !== 'string') {
+                throw new Error("Invalid response format");
+            }
+
+            let responseArray = response.split("**");
+            let newResponse = ""; // Initialize newResponse as an empty string
+            
+            // Process the response and format it with <b> tags for specific segments
+            for (let i = 0; i < responseArray.length; i++) {
+                if (i === 0 || i % 2 !== 1) {
+                    newResponse += responseArray[i]; // Regular text
+                } else {
+                    newResponse += "<b>" + responseArray[i] + "</b>"; // Bolded text
+                }
+            }
+
+            // Replace any '*' characters in the final string with <br> (line breaks)
+            newResponse = newResponse.replace(/\*/g, "<br>");
+
+            // Once the response is received, store it in the state
+            let newResponseArray = newResponse.split(" ");
+            for(let i=0; i<newResponseArray.length; i++){
+                const nextWord= newResponseArray[i];
+                delayPara(i,nextWord +" ")
+            }
+        } catch (error) {
+            console.error("Error processing the response:", error);
+            setResultData("An error occurred. Please try again later.");
+        } finally {
+            setLoading(false); // Set loading to false once the request is completed
+            setInput(""); // Clear the input field after submitting the prompt
+        }
     };
 
     // The context value that will be shared with all child components
