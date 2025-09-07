@@ -96,7 +96,8 @@ function Main() {
               <img src={assets.gallery_icon} alt="Gallery Icon" />  {/* Gallery icon */}
               <img src={assets.menu_icon} alt="Menu Icon" />  {/* Menu icon */}
               {/* Trigger the onSent function when the user clicks the send icon */}
-              <img onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />
+              {input?<img onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />:null}
+              
             </div>
           </div>
 
