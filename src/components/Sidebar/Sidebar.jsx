@@ -8,13 +8,7 @@ const Sidebar = () => {
     const [extended, setExtended] = useState(false); 
     
     // Destructuring values from the Context
-    const { onSent, previousPrompt, setPrevPrompts, setRecentPrompt , newChat } = useContext(Context);
-
-    // Function to load the prompt and send it when clicking a recent entry
-    const loadPrompt = async (prompt) => {
-        setRecentPrompt(prompt);  // Set the clicked prompt as the recent prompt
-        await onSent(prompt);  // Send the prompt and get the response
-    };
+    const { conversations, activeId, openConversation, newChat } = useContext(Context);
 
     return (
         <div className="sidebar"> {/* Sidebar container */}
@@ -37,16 +31,17 @@ const Sidebar = () => {
                 {/* Display recent prompts when the sidebar is extended */}
                 {extended ? (
                     <div className="recent">  {/* Recent section containing recent prompts */}
-                        <p className="recent-title">Recent</p>  {/* Title for the recent prompts */}
-                        {/* Map through the previousPrompt array to display each recent prompt */}
-                        {previousPrompt.map((item, index) => (
+                        <p className="recent-title">Chats</p>  {/* Title for saved chats */}
+                        {/* List conversations from context */}
+                        {conversations.map((c) => (
                             <div
-                                className="recent-entry"  // Styling class for individual recent prompt entry
-                                key={index}  // Use index as key for list items (ideally should be unique id)
-                                onClick={() => {onSent(item), loadPrompt(item)}}  // Trigger sending and loading of prompt on click
+                                className="recent-entry"
+                                key={c.id}
+                                onClick={() => openConversation(c.id)}
+                                style={{ background: c.id === activeId ? '#e2e6eb' : 'transparent' }}
                             >
-                                <img src={assets.message_icon} alt="message-icon" />  {/* Icon for recent prompt */}
-                                <p>{item.slice(0,18)}...</p>  {/* Display the first 18 characters of the prompt */}
+                                <img src={assets.message_icon} alt="message-icon" />
+                                <p title={c.title}>{(c.title || 'New Chat').slice(0, 22)}{(c.title || '').length > 22 ? '…' : ''}</p>
                             </div>
                         ))}
                     </div>
