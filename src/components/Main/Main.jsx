@@ -1,14 +1,20 @@
-import React, { useContext } from 'react';  // Import React and useContext hook
-import './main.css'; // Import custom CSS styles
-import { assets } from '../../assets/assets'; // Import assets like icons and images
-import { Context } from '../../context/Context'; // Import the Context to access shared state
+ import React, { useContext, useEffect, useRef } from 'react';
+import { assets } from '../../assets/assets';
+import { Context } from '../../context/Context';
+import './main.css';
 
-function Main() {
-  // Destructure the necessary values and functions from the Context
-  const { onSent, recentPrompt, showResult, loading, resultData, setInput, input } = useContext(Context);
+const Main = () => {
+  const { onSent, recentPrompt, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat } = useContext(Context);
 
   // Debugging: Log to check if `resultData` is populated
   console.log("resultData:", resultData);
+
+  // Ref for chat container to auto-scroll
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, resultData, loading]);
 
   // Handle "Enter" key press to trigger sending the prompt
   const handleKeyDown = (e) => {
@@ -23,13 +29,15 @@ function Main() {
       {/* Navigation Bar */}
       <div className='nav'>
         <p style={{fontWeight:400, cursor:'pointer'}} > Gemini</p>  {/* App name */}
-        <img src={assets.user_icon} alt="User Icon" />  {/* Display user icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => { clearHistory(); newChat(); }} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}>Clear</button>
+          <img src={assets.user_icon} alt="User Icon" />  {/* Display user icon */}
+        </div>
       </div>
 
       <div className="main-container">
-        {/* Conditional rendering based on showResult */}
-        {/* If showResult is false, display the initial UI (prompt cards) */}
-        {!showResult ? (
+        {/* If there is no chat history yet, display the initial UI (prompt cards) */}
+        {messages.length === 0 ? (
           <>
             <div className="greet">
               <p><span>Hello Dev's ,I am Rahul</span></p> {/* Greet the user */}
@@ -58,26 +66,37 @@ function Main() {
             </div>
           </>
         ) : (
-          // If showResult is true, display the result section
-          <div className='result'>
-            <div className="result-title">
-              <img src={assets.user_icon} alt="User Icon" />
-              <p>{recentPrompt}</p> {/* Display the most recent prompt */}
-            </div>
-            <div className="result-data">
-              <img src={assets.gemini_icon} alt="Gemini Icon" />
-              {/* Check if resultData is available before rendering */}
-              {resultData ? (
-                <p dangerouslySetInnerHTML={{ __html: resultData }}></p>  // Render result as HTML
-              ) : (
-                // Display loading indicator if resultData is not available yet
-                <div className='loader'>
-                  <hr />
-                  <hr />
-                  <hr />
+          // Otherwise, render the chat history
+          <div className='result' style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {messages.map((m) => (
+              <div key={m.id} className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <img src={m.role === 'user' ? assets.user_icon : assets.gemini_icon} alt={m.role} />
+                {m.role === 'assistant' ? (
+                  <p dangerouslySetInnerHTML={{ __html: m.content }}></p>
+                ) : (
+                  <p>{m.content}</p>
+                )}
+              </div>
+            ))}
+
+            {/* While loading, render a live typing bubble with the animated resultData */}
+            {showResult && loading && (
+              <div className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <img src={assets.gemini_icon} alt="Gemini Icon" />
+                <div>
+                  {resultData ? (
+                    <p dangerouslySetInnerHTML={{ __html: resultData }}></p>
+                  ) : (
+                    <div className='loader'>
+                      <hr />
+                      <hr />
+                      <hr />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
           </div>
         )}
 
@@ -104,12 +123,11 @@ function Main() {
           {/* Information about privacy and reliability of Gemini */}
           <p className='bottom-info'>
             Gemini may display inaccurate info, including about people, so double-check its responses. Created By {"<"} Savvana Rahul⚡{" >"} 
-          </p>
+          </p>  
           
         </div>
       </div>
     </div>
   );
-}
-
-export default Main;  // Export the Main component for use in other parts of the app
+ }
+  export default Main;  // Export the Main component for use in other parts of the app
