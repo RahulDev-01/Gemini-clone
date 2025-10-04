@@ -1,0 +1,27 @@
+.typing-effect {
+  position: relative;
+  display: inline-block;
+}
+
+.typing-cursor {
+  animation: blink 1s infinite;
+  color: #4b90ff;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Mobile optimizations for typing effect */
+@media (max-width: 768px) {
+  .typing-cursor {
+    font-size: 0.9em;
+  }
+}

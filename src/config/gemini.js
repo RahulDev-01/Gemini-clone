@@ -66,19 +66,32 @@ export default async function main(prompt, downloadImage = false) {
   const ai = new GoogleGenAI({ apiKey });  // Instantiate the GoogleGenAI API client with the API key
 
   const baseConfig = {
-    responseModalities: ['IMAGE', 'TEXT'],  // When we want image, ask for IMAGE + TEXT where supported
+    responseModalities: ['TEXT'],  // Focus on text for faster responses
+    temperature: 0.7,  // Balanced creativity and speed
+    maxOutputTokens: 2048,  // Limit response length for speed
+  };
+
+  const imageConfig = {
+    responseModalities: ['IMAGE', 'TEXT'],  // Enable image generation
+    temperature: 0.8,  // Higher creativity for images
+    maxOutputTokens: 1024,  // Shorter text for image prompts
   };
 
   // Candidate models to try in order. Some models may not be available to your project/region or API version.
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
-    // Prefer widely available, stable text models first
+    // Prefer fastest models first for speed
     'gemini-2.0-flash-exp',
     'gemini-2.5-flash',
     'gemini-1.5-flash-latest',
     'gemini-1.5-pro-latest',
-    // Try image-preview model last as availability varies
-    'gemini-2.5-flash-preview-image',
+  ];
+
+  // Models that support image generation (updated based on availability)
+  const imageModels = [
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-pro-latest',
   ];
 
   // Structure the contents for the API request
@@ -92,9 +105,12 @@ export default async function main(prompt, downloadImage = false) {
   // Infer if the user wants an image: explicit flag OR prompt contains image-intent keywords
   const imageIntent = downloadImage || /\b(image|picture|photo|draw|sketch|generate\s+an?\s+image|create\s+an?\s+image)\b/i.test(String(prompt || ''));
 
+  // Choose models based on whether we want image generation
+  const modelsToTry = imageIntent ? imageModels : candidateModels;
+  
   // We'll try each model with a single retry on 429 before moving to the next model
   const tried = [];
-  for (const model of candidateModels) {
+  for (const model of modelsToTry) {
     let attempt = 0;
     const maxAttempts = 2;
     tried.push(model);
@@ -108,7 +124,7 @@ export default async function main(prompt, downloadImage = false) {
         // Make an API request to generate content using the Gemini model
         const response = await ai.models.generateContentStream({
           model,
-          config: useTextOnly ? { responseModalities: ['TEXT'] } : baseConfig,
+          config: useTextOnly ? { responseModalities: ['TEXT'] } : (imageIntent ? imageConfig : baseConfig),
           contents,
         });
 
@@ -141,8 +157,8 @@ export default async function main(prompt, downloadImage = false) {
         console.log(fullText);
       }
 
-      // If binary data is collected and the downloadImage flag is true, handle the download
-      if (binaryData.length > 0 && downloadImage) {
+      // If binary data is collected, return it as base64 for preview
+      if (binaryData.length > 0) {
         // Combine all binary data efficiently without repeated concatenations
         const totalLen = binaryData.reduce((acc, arr) => acc + arr.length, 0);
         const finalBinary = new Uint8Array(totalLen);
@@ -151,8 +167,31 @@ export default async function main(prompt, downloadImage = false) {
           finalBinary.set(arr, offset);
           offset += arr.length;
         }
-        const fileExtension = 'png';
-        saveBinaryFile(`generated_image.${fileExtension}`, finalBinary);
+        // Convert to base64 for preview using chunked approach for large data
+        try {
+          const chunkSize = 8192; // Process in chunks to avoid call stack overflow
+          let result = '';
+          for (let i = 0; i < finalBinary.length; i += chunkSize) {
+            const chunk = finalBinary.slice(i, i + chunkSize);
+            result += String.fromCharCode.apply(null, chunk);
+          }
+          const base64String = btoa(result);
+          console.log('Base64 conversion successful, length:', base64String.length);
+          return base64String;
+        } catch (error) {
+          console.error('Base64 conversion failed:', error);
+          // Alternative approach using TextDecoder
+          try {
+            const decoder = new TextDecoder('latin1');
+            const text = decoder.decode(finalBinary);
+            const base64String = btoa(text);
+            console.log('Alternative base64 conversion successful, length:', base64String.length);
+            return base64String;
+          } catch (altError) {
+            console.error('Alternative base64 conversion also failed:', altError);
+            return 'Error: Could not convert image data to base64';
+          }
+        }
       }
 
         return fullText;  // Return the text content if available
@@ -191,7 +230,7 @@ export default async function main(prompt, downloadImage = false) {
               }
             }
 
-            if (binaryData.length > 0 && downloadImage) {
+            if (binaryData.length > 0) {
               const totalLen = binaryData.reduce((acc, arr) => acc + arr.length, 0);
               const finalBinary = new Uint8Array(totalLen);
               let offset = 0;
@@ -199,8 +238,31 @@ export default async function main(prompt, downloadImage = false) {
                 finalBinary.set(arr, offset);
                 offset += arr.length;
               }
-              const fileExtension = 'png';
-              saveBinaryFile(`generated_image.${fileExtension}`, finalBinary);
+              // Convert to base64 for preview using chunked approach for large data
+              try {
+                const chunkSize = 8192; // Process in chunks to avoid call stack overflow
+                let result = '';
+                for (let i = 0; i < finalBinary.length; i += chunkSize) {
+                  const chunk = finalBinary.slice(i, i + chunkSize);
+                  result += String.fromCharCode.apply(null, chunk);
+                }
+                const base64String = btoa(result);
+                console.log('Non-streaming base64 conversion successful, length:', base64String.length);
+                return base64String;
+              } catch (error) {
+                console.error('Non-streaming base64 conversion failed:', error);
+                // Alternative approach using TextDecoder
+                try {
+                  const decoder = new TextDecoder('latin1');
+                  const text = decoder.decode(finalBinary);
+                  const base64String = btoa(text);
+                  console.log('Non-streaming alternative base64 conversion successful, length:', base64String.length);
+                  return base64String;
+                } catch (altError) {
+                  console.error('Non-streaming alternative base64 conversion also failed:', altError);
+                  return 'Error: Could not convert image data to base64';
+                }
+              }
             }
 
             return fullText || 'No text content returned.';

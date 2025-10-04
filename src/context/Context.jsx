@@ -72,7 +72,7 @@ const ContextProvider = ({ children }) => {
     setInput('');
   };
 
-  const onSent = async (promptArg) => {
+  const onSent = async (promptArg, isImageGeneration = false) => {
     const prompt = promptArg ?? input;
     if (!prompt) return;
 
@@ -96,12 +96,44 @@ const ContextProvider = ({ children }) => {
 
     try {
       // Call Gemini config to generate a real response
-      const aiText = await geminiGenerate(prompt, /*downloadImage*/ false);
-      const responseHtml = aiText || 'No response received.';
-      setResultData(responseHtml);
-      const assistantMsg = { id: `${Date.now()}-a`, role: 'assistant', content: responseHtml };
-      setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
-      setMessages(prev => [...prev, assistantMsg]);
+      const aiResponse = await geminiGenerate(prompt, isImageGeneration);
+      
+      if (isImageGeneration && aiResponse && !aiResponse.includes('Error:')) {
+        // For image generation, the response is base64 data
+        setResultData('');
+        const assistantMsg = { 
+          id: `${Date.now()}-a`, 
+          role: 'assistant', 
+          content: aiResponse,
+          isImage: true 
+        };
+        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
+        setMessages(prev => [...prev, assistantMsg]);
+      } else if (isImageGeneration) {
+        // Image generation failed, show error message
+        const errorMsg = aiResponse || 'Failed to generate image. Please try again.';
+        setResultData(errorMsg);
+        const assistantMsg = { 
+          id: `${Date.now()}-a`, 
+          role: 'assistant', 
+          content: errorMsg,
+          isImage: false 
+        };
+        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
+        setMessages(prev => [...prev, assistantMsg]);
+      } else {
+        // For text generation, parse and display normally
+        const responseHtml = aiResponse || 'No response received.';
+        setResultData(responseHtml);
+        const assistantMsg = { 
+          id: `${Date.now()}-a`, 
+          role: 'assistant', 
+          content: responseHtml,
+          isImage: false 
+        };
+        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
+        setMessages(prev => [...prev, assistantMsg]);
+      }
     } catch (err) {
       const fallback = 'Failed to get a response from Gemini. Please check your API key and network, then try again.';
       setResultData(fallback);

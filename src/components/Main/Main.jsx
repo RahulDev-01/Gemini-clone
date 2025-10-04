@@ -1,11 +1,14 @@
- import React, { useContext, useEffect, useRef } from 'react';
+ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { assets } from '../../assets/assets';
 import { Context } from '../../context/Context';
 import { simpleMarkdownParser } from '../../utils/markdownParser';
+import TypingEffect from '../TypingEffect/TypingEffect';
 import './main.css';
 
 const Main = () => {
   const { onSent, recentPrompt, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat } = useContext(Context);
+  const [typingComplete, setTypingComplete] = useState(false);
+  const [expandedImage, setExpandedImage] = useState(null);
 
   // Debugging: Log to check if `resultData` is populated
   console.log("resultData:", resultData);
@@ -15,7 +18,14 @@ const Main = () => {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, resultData, loading]);
+  }, [messages, resultData, loading, typingComplete]);
+
+  // Reset typing state when new response starts
+  useEffect(() => {
+    if (loading) {
+      setTypingComplete(false);
+    }
+  }, [loading]);
 
   // Handle "Enter" key press to trigger sending the prompt
   const handleKeyDown = (e) => {
@@ -28,6 +38,12 @@ const Main = () => {
   // Handle card click with mobile-friendly touch events
   const handleCardClick = (prompt) => {
     onSent(prompt);
+  };
+
+  // Handle photo generation
+  const handlePhotoGeneration = () => {
+    const photoPrompt = input || "Generate a beautiful, high-quality image";
+    onSent(photoPrompt, true); // Pass true for image generation
   };
 
   return (
@@ -65,7 +81,7 @@ const Main = () => {
 
             {/* Display suggestion cards for the user to choose from */}
             <div className='cards'>
-              {/* Each card displays a different prompt suggestion */}
+              {/* Text-based suggestions */}
               <div 
                 className="card" 
                 onClick={() => handleCardClick("Suggest beautiful places to see on an upcoming road trip")}
@@ -84,23 +100,25 @@ const Main = () => {
                 <p>Explain the process of photosynthesis in simple terms</p>
                 <img src={assets.message_icon} alt="Message Icon" />
               </div>
+              
+              {/* Image generation suggestions */}
               <div 
-                className="card" 
-                onClick={() => handleCardClick("How do you create a responsive navbar using CSS and JavaScript?")}
+                className="card image-card" 
+                onClick={() => handlePhotoGeneration("A beautiful sunset over mountains")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
               >
-                <p>How do you create a responsive navbar using CSS and JavaScript?</p>
-                <img src={assets.bulb_icon} alt="Bulb Icon" />
+                <p>Generate a beautiful sunset over mountains</p>
+                <img src={assets.gallery_icon} alt="Gallery Icon" />
               </div>
               <div 
-                className="card" 
-                onClick={() => handleCardClick("What are some essential skills for becoming a front-end developer?")}
+                className="card image-card" 
+                onClick={() => handlePhotoGeneration("A futuristic city skyline at night")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
               >
-                <p>What are some essential skills for becoming a front-end developer?</p>
-                <img src={assets.code_icon} alt="Code Icon" />
+                <p>Create a futuristic city skyline at night</p>
+                <img src={assets.gallery_icon2} alt="Gallery Icon" />
               </div>
             </div>
           </>
@@ -111,14 +129,52 @@ const Main = () => {
               <div key={m.id} className={`result-data ${m.role === 'user' ? 'user-message' : ''}`} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <img src={m.role === 'user' ? assets.user_icon : assets.gemini_icon} alt={m.role} />
                 {m.role === 'assistant' ? (
-                  <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(m.content) }}></div>
+                  <div className="assistant-response">
+                    {m.isImage ? (
+                      <div className="image-response">
+                        <div 
+                          className="image-preview-container"
+                          onClick={() => setExpandedImage(`data:image/png;base64,${m.content}`)}
+                        >
+                          <img 
+                            src={`data:image/png;base64,${m.content}`} 
+                            alt="Generated Image" 
+                            className="generated-image-preview"
+                            onError={(e) => {
+                              console.error('Image load error:', e);
+                            }}
+                            onLoad={() => {
+                              console.log('Image loaded successfully');
+                            }}
+                          />
+                          <div className="image-overlay">
+                            <button 
+                              className="download-btn-small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const link = document.createElement('a');
+                                link.href = `data:image/png;base64,${m.content}`;
+                                link.download = 'generated-image.png';
+                                link.click();
+                              }}
+                              title="Download Image"
+                            >
+                              📥
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(m.content) }}></div>
+                    )}
+                  </div>
                 ) : (
                   <p>{m.content}</p>
                 )}
               </div>
             ))}
 
-            {/* While loading, render a live typing bubble with the animated resultData */}
+            {/* Show loading state */}
             {showResult && loading && (
               <div className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <img src={assets.gemini_icon} alt="Gemini Icon" />
@@ -132,7 +188,7 @@ const Main = () => {
               </div>
             )}
 
-            {/* Show result when not loading but showResult is true */}
+            {/* Show text result when not loading and has text data */}
             {showResult && !loading && resultData && (
               <div className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <img src={assets.gemini_icon} alt="Gemini Icon" />
@@ -142,6 +198,38 @@ const Main = () => {
               </div>
             )}
             <div ref={chatEndRef} />
+          </div>
+        )}
+
+        {/* Image Modal */}
+        {expandedImage && (
+          <div className="image-modal" onClick={() => setExpandedImage(null)}>
+            <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="close-modal-btn"
+                onClick={() => setExpandedImage(null)}
+              >
+                ✕
+              </button>
+              <img 
+                src={expandedImage} 
+                alt="Expanded Image" 
+                className="expanded-image"
+              />
+              <div className="modal-actions">
+                <button 
+                  className="download-btn-modal"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = expandedImage;
+                    link.download = 'generated-image.png';
+                    link.click();
+                  }}
+                >
+                  📥 Download Full Size
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -157,7 +245,13 @@ const Main = () => {
               onKeyDown={handleKeyDown}  // Trigger onSent function on "Enter" key press
             />
             <div>
-              <img src={assets.gallery_icon} alt="Gallery Icon" />  {/* Gallery icon */}
+              <img 
+                src={assets.gallery_icon} 
+                alt="Gallery Icon" 
+                className="photo-generate-button"
+                onClick={handlePhotoGeneration}
+                title="Generate Image"
+              />
               <img src={assets.menu_icon} alt="Menu Icon" />  {/* Menu icon */}
               {/* Trigger the onSent function when the user clicks the send icon */}
               {input?<img className="send-button" onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />:null}
