@@ -25,6 +25,11 @@ const Main = () => {
     }
   };
 
+  // Handle card click with mobile-friendly touch events
+  const handleCardClick = (prompt) => {
+    onSent(prompt);
+  };
+
   return (
     <div className='main'>
       {/* Navigation Bar */}
@@ -61,19 +66,39 @@ const Main = () => {
             {/* Display suggestion cards for the user to choose from */}
             <div className='cards'>
               {/* Each card displays a different prompt suggestion */}
-              <div className="card" onClick={() => onSent("Suggest beautiful places to see on an upcoming road trip")}>
+              <div 
+                className="card" 
+                onClick={() => handleCardClick("Suggest beautiful places to see on an upcoming road trip")}
+                onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
+                onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
+              >
                 <p>Suggest beautiful places to see on an upcoming road trip</p>
                 <img src={assets.compass_icon} alt="Compass Icon" />
               </div>
-              <div className="card" onClick={() => onSent("Explain the process of photosynthesis in simple terms")}>
+              <div 
+                className="card" 
+                onClick={() => handleCardClick("Explain the process of photosynthesis in simple terms")}
+                onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
+                onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
+              >
                 <p>Explain the process of photosynthesis in simple terms</p>
                 <img src={assets.message_icon} alt="Message Icon" />
               </div>
-              <div className="card" onClick={() => onSent("How do you create a responsive navbar using CSS and JavaScript?")}>
+              <div 
+                className="card" 
+                onClick={() => handleCardClick("How do you create a responsive navbar using CSS and JavaScript?")}
+                onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
+                onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
+              >
                 <p>How do you create a responsive navbar using CSS and JavaScript?</p>
                 <img src={assets.bulb_icon} alt="Bulb Icon" />
               </div>
-              <div className="card" onClick={() => onSent("What are some essential skills for becoming a front-end developer?")}>
+              <div 
+                className="card" 
+                onClick={() => handleCardClick("What are some essential skills for becoming a front-end developer?")}
+                onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
+                onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
+              >
                 <p>What are some essential skills for becoming a front-end developer?</p>
                 <img src={assets.code_icon} alt="Code Icon" />
               </div>
