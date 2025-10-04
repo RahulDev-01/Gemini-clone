@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 import geminiGenerate from '../config/gemini';
+import { simpleMarkdownParser } from '../utils/markdownParser';
 
 // Named export so components can use: useContext(Context)
 export const Context = createContext({});
@@ -78,6 +79,7 @@ const ContextProvider = ({ children }) => {
     setLoading(true);
     setShowResult(true);
     setRecentPrompt(prompt);
+    setResultData(''); // Clear previous result data
     // Ensure there is an active conversation
     let targetId = activeId;
     if (!targetId) {

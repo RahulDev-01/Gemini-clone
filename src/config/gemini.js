@@ -73,9 +73,7 @@ export default async function main(prompt, downloadImage = false) {
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
     // Prefer widely available, stable text models first
-    'gemini-1.5-flash',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash-8b',
+    'gemini-2.0-flash-exp',
     'gemini-2.5-flash',
     'gemini-1.5-flash-latest',
     'gemini-1.5-pro-latest',

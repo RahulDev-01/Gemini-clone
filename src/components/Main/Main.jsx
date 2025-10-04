@@ -1,6 +1,7 @@
  import React, { useContext, useEffect, useRef } from 'react';
 import { assets } from '../../assets/assets';
 import { Context } from '../../context/Context';
+import { simpleMarkdownParser } from '../../utils/markdownParser';
 import './main.css';
 
 const Main = () => {
@@ -30,7 +31,20 @@ const Main = () => {
       <div className='nav'>
         <p style={{fontWeight:400, cursor:'pointer'}} > Gemini</p>  {/* App name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => { clearHistory(); newChat(); }} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}>Clear</button>
+          <button 
+            className="clear-button"
+            onClick={() => { clearHistory(); newChat(); }} 
+            style={{ 
+              padding: '6px 10px', 
+              borderRadius: 6, 
+              border: '1px solid #ddd', 
+              background: '#fff', 
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Clear
+          </button>
           <img src={assets.user_icon} alt="User Icon" />  {/* Display user icon */}
         </div>
       </div>
@@ -47,19 +61,19 @@ const Main = () => {
             {/* Display suggestion cards for the user to choose from */}
             <div className='cards'>
               {/* Each card displays a different prompt suggestion */}
-              <div className="card">
+              <div className="card" onClick={() => onSent("Suggest beautiful places to see on an upcoming road trip")}>
                 <p>Suggest beautiful places to see on an upcoming road trip</p>
                 <img src={assets.compass_icon} alt="Compass Icon" />
               </div>
-              <div className="card">
+              <div className="card" onClick={() => onSent("Explain the process of photosynthesis in simple terms")}>
                 <p>Explain the process of photosynthesis in simple terms</p>
                 <img src={assets.message_icon} alt="Message Icon" />
               </div>
-              <div className="card">
+              <div className="card" onClick={() => onSent("How do you create a responsive navbar using CSS and JavaScript?")}>
                 <p>How do you create a responsive navbar using CSS and JavaScript?</p>
                 <img src={assets.bulb_icon} alt="Bulb Icon" />
               </div>
-              <div className="card">
+              <div className="card" onClick={() => onSent("What are some essential skills for becoming a front-end developer?")}>
                 <p>What are some essential skills for becoming a front-end developer?</p>
                 <img src={assets.code_icon} alt="Code Icon" />
               </div>
@@ -69,10 +83,10 @@ const Main = () => {
           // Otherwise, render the chat history
           <div className='result' style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {messages.map((m) => (
-              <div key={m.id} className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div key={m.id} className={`result-data ${m.role === 'user' ? 'user-message' : ''}`} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <img src={m.role === 'user' ? assets.user_icon : assets.gemini_icon} alt={m.role} />
                 {m.role === 'assistant' ? (
-                  <p dangerouslySetInnerHTML={{ __html: m.content }}></p>
+                  <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(m.content) }}></div>
                 ) : (
                   <p>{m.content}</p>
                 )}
@@ -84,15 +98,21 @@ const Main = () => {
               <div className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <img src={assets.gemini_icon} alt="Gemini Icon" />
                 <div>
-                  {resultData ? (
-                    <p dangerouslySetInnerHTML={{ __html: resultData }}></p>
-                  ) : (
-                    <div className='loader'>
-                      <hr />
-                      <hr />
-                      <hr />
-                    </div>
-                  )}
+                  <div className='typing-indicator'>
+                    <div className='typing-dot'></div>
+                    <div className='typing-dot'></div>
+                    <div className='typing-dot'></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show result when not loading but showResult is true */}
+            {showResult && !loading && resultData && (
+              <div className="result-data" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <img src={assets.gemini_icon} alt="Gemini Icon" />
+                <div>
+                  <div dangerouslySetInnerHTML={{ __html: simpleMarkdownParser(resultData) }}></div>
                 </div>
               </div>
             )}
@@ -115,7 +135,7 @@ const Main = () => {
               <img src={assets.gallery_icon} alt="Gallery Icon" />  {/* Gallery icon */}
               <img src={assets.menu_icon} alt="Menu Icon" />  {/* Menu icon */}
               {/* Trigger the onSent function when the user clicks the send icon */}
-              {input?<img onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />:null}
+              {input?<img className="send-button" onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />:null}
               
             </div>
           </div>
