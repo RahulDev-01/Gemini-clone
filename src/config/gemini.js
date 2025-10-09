@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';  // Import the GoogleGenAI API client
-import mime from 'mime';  // Import mime to handle file type detection
 
 // Access the API key from environment variables (Vite will inject it during the build)
 const apiKey = import.meta.env.VITE_API_KEY;
@@ -81,17 +80,17 @@ export default async function main(prompt, downloadImage = false) {
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
     // Prefer fastest models first for speed
-    'gemini-2.0-flash-exp',
-    'gemini-2.5-flash',
     'gemini-1.5-flash-latest',
     'gemini-1.5-pro-latest',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
   ];
 
   // Models that support image generation (updated based on availability)
   const imageModels = [
-    'gemini-2.0-flash-exp',
     'gemini-1.5-flash-latest',
     'gemini-1.5-pro-latest',
+    'gemini-1.5-flash',
   ];
 
   // Structure the contents for the API request
@@ -167,17 +166,17 @@ export default async function main(prompt, downloadImage = false) {
           finalBinary.set(arr, offset);
           offset += arr.length;
         }
-        // Convert to base64 for preview using chunked approach for large data
-        try {
-          const chunkSize = 8192; // Process in chunks to avoid call stack overflow
-          let result = '';
-          for (let i = 0; i < finalBinary.length; i += chunkSize) {
-            const chunk = finalBinary.slice(i, i + chunkSize);
-            result += String.fromCharCode.apply(null, chunk);
-          }
-          const base64String = btoa(result);
-          console.log('Base64 conversion successful, length:', base64String.length);
-          return base64String;
+          // Convert to base64 for preview using chunked approach for large data
+          try {
+            const chunkSize = 8192; // Process in chunks to avoid call stack overflow
+            let result = '';
+            for (let i = 0; i < finalBinary.length; i += chunkSize) {
+              const chunk = finalBinary.slice(i, i + chunkSize);
+              result += String.fromCharCode(...chunk);
+            }
+            const base64String = btoa(result);
+            console.log('Base64 conversion successful, length:', base64String.length);
+            return base64String;
         } catch (error) {
           console.error('Base64 conversion failed:', error);
           // Alternative approach using TextDecoder
@@ -244,7 +243,7 @@ export default async function main(prompt, downloadImage = false) {
                 let result = '';
                 for (let i = 0; i < finalBinary.length; i += chunkSize) {
                   const chunk = finalBinary.slice(i, i + chunkSize);
-                  result += String.fromCharCode.apply(null, chunk);
+                  result += String.fromCharCode(...chunk);
                 }
                 const base64String = btoa(result);
                 console.log('Non-streaming base64 conversion successful, length:', base64String.length);

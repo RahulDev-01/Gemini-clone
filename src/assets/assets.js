@@ -6,6 +6,7 @@ import setting_icon from './setting_icon.png'
 import bulb_icon from './bulb_icon.png'
 import compass_icon from './compass_icon.png'
 import gallery_icon from './gallery_icon.png'
+import gallery_icon2 from './gallery_icon2.png'
 import mic_icon from './mic_icon.png'
 import user_icon from './user_icon.png'
 import youtube_icon from './youtube_icon.png'
@@ -23,6 +24,7 @@ export const assets = {
     bulb_icon,
     compass_icon,
     gallery_icon,
+    gallery_icon2,
     mic_icon,
     user_icon,
     youtube_icon,

@@ -1,31 +1,20 @@
- import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { assets } from '../../assets/assets';
 import { Context } from '../../context/Context';
 import { simpleMarkdownParser } from '../../utils/markdownParser';
-import TypingEffect from '../TypingEffect/TypingEffect';
 import './main.css';
 
 const Main = () => {
-  const { onSent, recentPrompt, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat } = useContext(Context);
-  const [typingComplete, setTypingComplete] = useState(false);
+  const { onSent, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat } = useContext(Context);
   const [expandedImage, setExpandedImage] = useState(null);
 
-  // Debugging: Log to check if `resultData` is populated
-  console.log("resultData:", resultData);
 
   // Ref for chat container to auto-scroll
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, resultData, loading, typingComplete]);
-
-  // Reset typing state when new response starts
-  useEffect(() => {
-    if (loading) {
-      setTypingComplete(false);
-    }
-  }, [loading]);
+  }, [messages, resultData, loading]);
 
   // Handle "Enter" key press to trigger sending the prompt
   const handleKeyDown = (e) => {
