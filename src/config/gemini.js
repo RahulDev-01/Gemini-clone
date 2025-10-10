@@ -191,9 +191,10 @@ export default async function main(prompt, downloadImage = false) {
             return 'Error: Could not convert image data to base64';
           }
         }
+      } else {
+        // Only return text if no binary data was collected
+        return fullText || 'No content generated.';
       }
-
-        return fullText;  // Return the text content if available
 
       } catch (error) {
         const parsed = parseApiError(error);
@@ -262,9 +263,9 @@ export default async function main(prompt, downloadImage = false) {
                   return 'Error: Could not convert image data to base64';
                 }
               }
+            } else {
+              return fullText || 'No text content returned.';
             }
-
-            return fullText || 'No text content returned.';
           } catch (nsErr) {
             console.warn(`Non-streaming generateContent also failed for ${model}. Trying next model...`, nsErr);
             break; // Move to next model
