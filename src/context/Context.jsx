@@ -93,6 +93,12 @@ const ContextProvider = ({ children }) => {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
 
+    // Optimistic assistant placeholder
+    const pendingId = `${Date.now()}-a-pending`;
+    const pendingMsg = { id: pendingId, role: 'assistant', content: '', isImage: !!isImageGeneration, pending: true };
+    setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, pendingMsg] } : c));
+    setMessages(prev => [...prev, pendingMsg]);
+
     try {
       // Call Gemini config to generate a real response
       const aiResponse = await geminiGenerate(prompt, isImageGeneration);
@@ -106,8 +112,13 @@ const ContextProvider = ({ children }) => {
           content: aiResponse,
           isImage: true 
         };
-        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
-        setMessages(prev => [...prev, assistantMsg]);
+        // Replace optimistic placeholder with real image
+        setConversations(prev => prev.map(c => 
+          c.id === (activeId || targetId)
+            ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
+            : c
+        ));
+        setMessages(prev => prev.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg));
       } else if (isImageGeneration) {
         // Image generation failed, show error message
         const errorMsg = aiResponse || 'Failed to generate image. Please try again.';
@@ -118,8 +129,13 @@ const ContextProvider = ({ children }) => {
           content: errorMsg,
           isImage: false 
         };
-        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
-        setMessages(prev => [...prev, assistantMsg]);
+        // Replace optimistic placeholder with error text
+        setConversations(prev => prev.map(c => 
+          c.id === (activeId || targetId)
+            ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
+            : c
+        ));
+        setMessages(prev => prev.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg));
       } else {
         // For text generation, parse and display normally
         const responseHtml = aiResponse || 'No response received.';
@@ -130,18 +146,29 @@ const ContextProvider = ({ children }) => {
           content: responseHtml,
           isImage: false 
         };
-        setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
-        setMessages(prev => [...prev, assistantMsg]);
+        // Replace optimistic placeholder with real text
+        setConversations(prev => prev.map(c => 
+          c.id === (activeId || targetId)
+            ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
+            : c
+        ));
+        setMessages(prev => prev.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg));
       }
     } catch (err) {
       const fallback = 'Failed to get a response from Gemini. Please check your API key and network, then try again.';
       setResultData(fallback);
-      const assistantMsg = { id: `${Date.now()}-a`, role: 'assistant', content: fallback };
-      setConversations(prev => prev.map(c => c.id === (activeId || targetId) ? { ...c, messages: [...c.messages, assistantMsg] } : c));
-      setMessages(prev => [...prev, assistantMsg]);
+      const assistantMsg = { id: `${Date.now()}-a`, role: 'assistant', content: fallback, isImage: false };
+      // Replace optimistic placeholder with error text
+      setConversations(prev => prev.map(c => 
+        c.id === (activeId || targetId)
+          ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
+          : c
+      ));
+      setMessages(prev => prev.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg));
       console.error('onSent error:', err);
     } finally {
       setLoading(false);
+      setShowResult(false);
     }
   };
 
