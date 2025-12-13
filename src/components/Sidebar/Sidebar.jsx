@@ -5,8 +5,8 @@ import { Context } from "../../context/Context";  // Importing the Context to ac
 
 const Sidebar = () => {
     // State for toggling the extended/collapsed state of the sidebar
-    const [extended, setExtended] = useState(false); 
-    
+    const [extended, setExtended] = useState(false);
+
     // Destructuring values from the Context
     const { conversations, activeId, openConversation, newChat } = useContext(Context);
 
@@ -35,10 +35,9 @@ const Sidebar = () => {
                         {/* List conversations from context */}
                         {conversations.map((c) => (
                             <div
-                                className="recent-entry"
+                                className={`recent-entry ${c.id === activeId ? 'active' : ''}`}
                                 key={c.id}
                                 onClick={() => openConversation(c.id)}
-                                style={{ background: c.id === activeId ? '#e2e6eb' : 'transparent' }}
                             >
                                 <img src={assets.message_icon} alt="message-icon" />
                                 <p title={c.title}>{(c.title || 'New Chat').slice(0, 22)}{(c.title || '').length > 22 ? '…' : ''}</p>
