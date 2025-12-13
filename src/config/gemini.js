@@ -79,18 +79,16 @@ export default async function main(prompt, downloadImage = false) {
   // Candidate models to try in order. Some models may not be available to your project/region or API version.
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
-    // Prefer fastest models first for speed
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-pro-latest',
+    // Prefer stable, widely available models
     'gemini-1.5-flash',
     'gemini-1.5-pro',
+    'gemini-pro',
   ];
 
-  // Models that support image generation (updated based on availability)
+  // Models that support image generation
   const imageModels = [
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-pro-latest',
     'gemini-1.5-flash',
+    'gemini-pro-vision', // Fallback for older keys if needed
   ];
 
   // Structure the contents for the API request
