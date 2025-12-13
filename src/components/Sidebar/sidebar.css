@@ -84,6 +84,15 @@
     background-color: var(--hover-color);
 }
 
+.sidebar .recent-entry.active {
+    background-color: #004a77; /* Dark blue for active state */
+    color: #fff;
+}
+
+.sidebar .recent-entry.active p {
+    font-weight: 500;
+}
+
 .sidebar .bottom {
     display: flex;
     flex-direction: column;
