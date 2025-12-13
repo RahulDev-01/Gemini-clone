@@ -39,19 +39,11 @@ const Main = () => {
     <div className='main'>
       {/* Navigation Bar */}
       <div className='nav'>
-        <p style={{fontWeight:400, cursor:'pointer'}} > Gemini</p>  {/* App name */}
+        <p style={{ fontWeight: 400, cursor: 'pointer' }} > Gemini</p>  {/* App name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button 
+          <button
             className="clear-button"
-            onClick={() => { clearHistory(); newChat(); }} 
-            style={{ 
-              padding: '6px 10px', 
-              borderRadius: 6, 
-              border: '1px solid #ddd', 
-              background: '#fff', 
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
+            onClick={() => { clearHistory(); newChat(); }}
           >
             Clear
           </button>
@@ -71,8 +63,8 @@ const Main = () => {
             {/* Display suggestion cards for the user to choose from */}
             <div className='cards'>
               {/* Text-based suggestions */}
-              <div 
-                className="card" 
+              <div
+                className="card"
                 onClick={() => handleCardClick("Suggest beautiful places to see on an upcoming road trip")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
@@ -80,8 +72,8 @@ const Main = () => {
                 <p>Suggest beautiful places to see on an upcoming road trip</p>
                 <img src={assets.compass_icon} alt="Compass Icon" />
               </div>
-              <div 
-                className="card" 
+              <div
+                className="card"
                 onClick={() => handleCardClick("Explain the process of photosynthesis in simple terms")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
@@ -89,10 +81,10 @@ const Main = () => {
                 <p>Explain the process of photosynthesis in simple terms</p>
                 <img src={assets.message_icon} alt="Message Icon" />
               </div>
-              
+
               {/* Image generation suggestions */}
-              <div 
-                className="card image-card" 
+              <div
+                className="card image-card"
                 onClick={() => handlePhotoGeneration("A beautiful sunset over mountains")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
@@ -100,8 +92,8 @@ const Main = () => {
                 <p>Generate a beautiful sunset over mountains</p>
                 <img src={assets.gallery_icon} alt="Gallery Icon" />
               </div>
-              <div 
-                className="card image-card" 
+              <div
+                className="card image-card"
                 onClick={() => handlePhotoGeneration("A futuristic city skyline at night")}
                 onTouchStart={(e) => e.currentTarget.style.transform = 'translateY(-3px) scale(0.97)'}
                 onTouchEnd={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
@@ -121,13 +113,13 @@ const Main = () => {
                   <div className="assistant-response">
                     {m.isImage ? (
                       <div className="image-response">
-                        <div 
+                        <div
                           className="image-preview-container"
                           onClick={() => setExpandedImage(`data:image/png;base64,${m.content}`)}
                         >
-                          <img 
-                            src={`data:image/png;base64,${m.content}`} 
-                            alt="Generated Image" 
+                          <img
+                            src={`data:image/png;base64,${m.content}`}
+                            alt="Generated Image"
                             className="generated-image-preview"
                             onError={(e) => {
                               console.error('Image load error:', e);
@@ -137,7 +129,7 @@ const Main = () => {
                             }}
                           />
                           <div className="image-overlay">
-                            <button 
+                            <button
                               className="download-btn-small"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -194,19 +186,19 @@ const Main = () => {
         {expandedImage && (
           <div className="image-modal" onClick={() => setExpandedImage(null)}>
             <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
-              <button 
+              <button
                 className="close-modal-btn"
                 onClick={() => setExpandedImage(null)}
               >
                 ✕
               </button>
-              <img 
-                src={expandedImage} 
-                alt="Expanded Image" 
+              <img
+                src={expandedImage}
+                alt="Expanded Image"
                 className="expanded-image"
               />
               <div className="modal-actions">
-                <button 
+                <button
                   className="download-btn-modal"
                   onClick={() => {
                     const link = document.createElement('a');
@@ -234,28 +226,28 @@ const Main = () => {
               onKeyDown={handleKeyDown}  // Trigger onSent function on "Enter" key press
             />
             <div>
-              <img 
-                src={assets.gallery_icon} 
-                alt="Gallery Icon" 
+              <img
+                src={assets.gallery_icon}
+                alt="Gallery Icon"
                 className="photo-generate-button"
                 onClick={handlePhotoGeneration}
                 title="Generate Image"
               />
               <img src={assets.menu_icon} alt="Menu Icon" />  {/* Menu icon */}
               {/* Trigger the onSent function when the user clicks the send icon */}
-              {input?<img className="send-button" onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" />:null}
-              
+              {input ? <img className="send-button" onClick={() => { onSent() }} src={assets.send_icon} alt="Send Icon" /> : null}
+
             </div>
           </div>
 
           {/* Information about privacy and reliability of Gemini */}
           <p className='bottom-info'>
-            Gemini may display inaccurate info, including about people, so double-check its responses. Created By {"<"} Savvana Rahul⚡{" >"} 
-          </p>  
-          
+            Gemini may display inaccurate info, including about people, so double-check its responses. Created By {"<"} Savvana Rahul⚡{" >"}
+          </p>
+
         </div>
       </div>
     </div>
   );
- }
-  export default Main;  // Export the Main component for use in other parts of the app
+}
+export default Main;  // Export the Main component for use in other parts of the app
