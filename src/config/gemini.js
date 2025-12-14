@@ -80,12 +80,15 @@ export default async function main(prompt, downloadImage = false) {
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
     // Prefer stable, widely available models with specific versions
+    'gemini-1.5-flash', // Try aliased version first or last? Let's keep specific first, but add aliased as backup
     'gemini-1.5-flash-001',
     'gemini-1.5-pro-001',
+    'gemini-1.5-pro',
   ];
 
   // Models that support image generation
   const imageModels = [
+    'gemini-1.5-flash',
     'gemini-1.5-flash-001', 
     'gemini-1.5-pro-001',
   ];
@@ -286,6 +289,7 @@ export default async function main(prompt, downloadImage = false) {
             console.warn(`Non-streaming generateContent also failed for ${model}. Trying next model...`, nsErr);
             // intentionally empty to loop to next model
           }
+          continue; // IMPORTANT: Force loop to continue to next model instead of falling through to error handler
         }
 
         // Handle 429 with an optional short retry
