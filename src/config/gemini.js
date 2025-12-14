@@ -79,15 +79,15 @@ export default async function main(prompt, downloadImage = false) {
   // Candidate models to try in order. Some models may not be available to your project/region or API version.
   // We'll fall back gracefully if a model is NOT_FOUND or not supported for generateContent.
   const candidateModels = [
-    // Prefer stable, widely available models
-    'gemini-1.5-flash',
-    'gemini-1.5-pro',
+    // Prefer stable, widely available models with specific versions
+    'gemini-1.5-flash-001',
+    'gemini-1.5-pro-001',
   ];
 
   // Models that support image generation
   const imageModels = [
-    'gemini-1.5-flash', // Supports both text and image generation (multimodal)
-    'gemini-1.5-pro',
+    'gemini-1.5-flash-001', 
+    'gemini-1.5-pro-001',
   ];
 
   // Structure the contents for the API request
@@ -102,11 +102,14 @@ export default async function main(prompt, downloadImage = false) {
   const imageIntent = downloadImage || /\b(image|picture|photo|draw|sketch|generate\s+an?\s+image|create\s+an?\s+image)\b/i.test(String(prompt || ''));
 
   // Choose models based on whether we want image generation
-  const modelsToTry = imageIntent ? imageModels : candidateModels;
+  let modelsToTry = imageIntent ? imageModels : candidateModels;
   
   // We'll try each model with a single retry on 429 before moving to the next model
   const tried = [];
-  for (const model of modelsToTry) {
+  // Use a classic for loop so we can modify modelsToTry length mostly if we were pushing, 
+  // but better to just iterate carefully.
+  for (let mIdx = 0; mIdx < modelsToTry.length; mIdx++) {
+    const model = modelsToTry[mIdx];
     let attempt = 0;
     const maxAttempts = 2;
     tried.push(model);
@@ -203,13 +206,40 @@ export default async function main(prompt, downloadImage = false) {
           // Do not count against attempts; immediately retry
           continue;
         }
-        // Handle 404/NOT_FOUND -> try next model immediately
+        // Handle 404/NOT_FOUND -> try next model, OR try to discover valid models dynamically
         const isNotFound = parsed.code === 404 || parsed.status === 'NOT_FOUND' || /not\s*found|not\s*supported/i.test(parsed.message || '');
         if (isNotFound) {
-          console.warn(`Model ${model} not available for streaming or not supported. Attempting non-streaming generateContent...`);
+          console.warn(`Model ${model} not found (404). Attempting to discover available models...`);
+          
+          // Try to list models dynamically to find a valid one
+          try {
+            const listResp = await ai.models.list();
+            if (listResp && listResp.models) {
+              const availableModels = listResp.models.map(m => m.name.replace('models/', ''));
+              console.log('Available models:', availableModels);
+              
+              // Find a suitable fallback that hasn't been tried yet
+              const fallback = availableModels.find(m => 
+                (m.includes('gemini-1.5') || m.includes('gemini-pro')) && 
+                !tried.includes(m) &&
+                (!imageIntent || (m.includes('flash') || m.includes('pro') || m.includes('vision')))
+              );
+
+              if (fallback) {
+                console.log(`Found valid fallback model: ${fallback}. Adding to candidate list.`);
+                 if (!modelsToTry.includes(fallback)) {
+                     modelsToTry.push(fallback);
+                 }
+              }
+            }
+          } catch (listErr) {
+             console.warn('Failed to list models:', listErr);
+          }
+
+          console.warn(`Attempting non-streaming generateContent as last resort for ${model}...`);
           try {
             const nonStreamResp = await ai.models.generateContent({ model, config: useTextOnly ? { responseModalities: ['TEXT'] } : baseConfig, contents });
-            // Extract text from non-streaming response
+             // ... existing non-streaming logic ...
             const candidates = nonStreamResp?.candidates || [];
             for (const c of candidates) {
               const parts = c?.content?.parts || [];
@@ -235,37 +265,26 @@ export default async function main(prompt, downloadImage = false) {
                 finalBinary.set(arr, offset);
                 offset += arr.length;
               }
-              // Convert to base64 for preview using chunked approach for large data
-              try {
-                const chunkSize = 8192; // Process in chunks to avoid call stack overflow
+              // ... existing base64 logic ...
+               try {
+                const chunkSize = 8192;
                 let result = '';
                 for (let i = 0; i < finalBinary.length; i += chunkSize) {
                   const chunk = finalBinary.slice(i, i + chunkSize);
                   result += String.fromCharCode(...chunk);
                 }
                 const base64String = btoa(result);
-                console.log('Non-streaming base64 conversion successful, length:', base64String.length);
                 return base64String;
               } catch (error) {
-                console.error('Non-streaming base64 conversion failed:', error);
-                // Alternative approach using TextDecoder
-                try {
-                  const decoder = new TextDecoder('latin1');
-                  const text = decoder.decode(finalBinary);
-                  const base64String = btoa(text);
-                  console.log('Non-streaming alternative base64 conversion successful, length:', base64String.length);
-                  return base64String;
-                } catch (altError) {
-                  console.error('Non-streaming alternative base64 conversion also failed:', altError);
-                  return 'Error: Could not convert image data to base64';
-                }
+                 // ...
+                 return 'Error: Could not convert image data to base64';
               }
             } else {
               return fullText || 'No text content returned.';
             }
           } catch (nsErr) {
             console.warn(`Non-streaming generateContent also failed for ${model}. Trying next model...`, nsErr);
-            break; // Move to next model
+            // intentionally empty to loop to next model
           }
         }
 
