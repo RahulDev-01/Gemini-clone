@@ -15,6 +15,24 @@ const ContextProvider = ({ children }) => {
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resultData, setResultData] = useState(''); // HTML string for assistant's rendered content
+  const [theme, setTheme] = useState('dark');
+
+  // Load theme from storage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('gc.theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const newTheme = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('gc.theme', newTheme);
+      return newTheme;
+    });
+  };
 
   // Load persisted conversations from localStorage on mount
   useEffect(() => {
@@ -102,18 +120,18 @@ const ContextProvider = ({ children }) => {
     try {
       // Call Gemini config to generate a real response
       const aiResponse = await geminiGenerate(prompt, isImageGeneration);
-      
+
       if (isImageGeneration && aiResponse && !aiResponse.includes('Error:')) {
         // For image generation, the response is base64 data
         setResultData('');
-        const assistantMsg = { 
-          id: `${Date.now()}-a`, 
-          role: 'assistant', 
+        const assistantMsg = {
+          id: `${Date.now()}-a`,
+          role: 'assistant',
           content: aiResponse,
-          isImage: true 
+          isImage: true
         };
         // Replace optimistic placeholder with real image
-        setConversations(prev => prev.map(c => 
+        setConversations(prev => prev.map(c =>
           c.id === (activeId || targetId)
             ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
             : c
@@ -123,14 +141,14 @@ const ContextProvider = ({ children }) => {
         // Image generation failed, show error message
         const errorMsg = aiResponse || 'Failed to generate image. Please try again.';
         setResultData(errorMsg);
-        const assistantMsg = { 
-          id: `${Date.now()}-a`, 
-          role: 'assistant', 
+        const assistantMsg = {
+          id: `${Date.now()}-a`,
+          role: 'assistant',
           content: errorMsg,
-          isImage: false 
+          isImage: false
         };
         // Replace optimistic placeholder with error text
-        setConversations(prev => prev.map(c => 
+        setConversations(prev => prev.map(c =>
           c.id === (activeId || targetId)
             ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
             : c
@@ -140,14 +158,14 @@ const ContextProvider = ({ children }) => {
         // For text generation, parse and display normally
         const responseHtml = aiResponse || 'No response received.';
         setResultData(responseHtml);
-        const assistantMsg = { 
-          id: `${Date.now()}-a`, 
-          role: 'assistant', 
+        const assistantMsg = {
+          id: `${Date.now()}-a`,
+          role: 'assistant',
           content: responseHtml,
-          isImage: false 
+          isImage: false
         };
         // Replace optimistic placeholder with real text
-        setConversations(prev => prev.map(c => 
+        setConversations(prev => prev.map(c =>
           c.id === (activeId || targetId)
             ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
             : c
@@ -159,7 +177,7 @@ const ContextProvider = ({ children }) => {
       setResultData(fallback);
       const assistantMsg = { id: `${Date.now()}-a`, role: 'assistant', content: fallback, isImage: false };
       // Replace optimistic placeholder with error text
-      setConversations(prev => prev.map(c => 
+      setConversations(prev => prev.map(c =>
         c.id === (activeId || targetId)
           ? { ...c, messages: c.messages.map(msg => msg.id === pendingId ? { ...assistantMsg, id: pendingId, pending: false } : msg) }
           : c
@@ -199,6 +217,8 @@ const ContextProvider = ({ children }) => {
         clearHistory,
         newChat,
         setRecentPrompt,
+        theme,
+        toggleTheme
       }}
     >
       {children}
