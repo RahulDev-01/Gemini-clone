@@ -82,13 +82,12 @@ export default async function main(prompt, downloadImage = false) {
     // Prefer stable, widely available models
     'gemini-1.5-flash',
     'gemini-1.5-pro',
-    'gemini-pro',
   ];
 
   // Models that support image generation
   const imageModels = [
-    'gemini-1.5-flash',
-    'gemini-pro-vision', // Fallback for older keys if needed
+    'gemini-1.5-flash', // Supports both text and image generation (multimodal)
+    'gemini-1.5-pro',
   ];
 
   // Structure the contents for the API request
