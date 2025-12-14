@@ -1,12 +1,31 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 :root {
+  /* Dark Mode Variables (Default) */
   --background-color: #131314;
   --surface-color: #1e1f20;
   --text-primary: #e3e3e3;
   --text-secondary: #a8a8a8;
   --accent-color: #4b90ff;
   --hover-color: #333537;
+  --scrollbar-track: #131314;
+  --scrollbar-thumb: #333537;
+  --card-hover: #282a2c;
+  --border-color: #444;
+}
+
+body.light-mode {
+  /* Light Mode Variables */
+  --background-color: #ffffff;
+  --surface-color: #f0f4f9;
+  --text-primary: #1f1f1f;
+  --text-secondary: #5f6368;
+  --accent-color: #1a73e8;
+  --hover-color: #e3e3e3;
+  --scrollbar-track: #f0f4f9;
+  --scrollbar-thumb: #dadce0;
+  --card-hover: #e3e8ee;
+  --border-color: #dadce0;
 }
 
 * {
@@ -14,6 +33,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Outfit', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
