@@ -5,7 +5,7 @@ import { simpleMarkdownParser } from '../../utils/markdownParser';
 import './main.css';
 
 const Main = () => {
-  const { onSent, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat } = useContext(Context);
+  const { onSent, showResult, loading, resultData, setInput, input, messages, clearHistory, newChat, theme, toggleTheme } = useContext(Context);
   const [expandedImage, setExpandedImage] = useState(null);
 
 
@@ -41,6 +41,15 @@ const Main = () => {
       <div className='nav'>
         <p style={{ fontWeight: 400, cursor: 'pointer' }} > Gemini</p>  {/* App name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Theme Toggle Button */}
+          <button
+            className="clear-button"
+            onClick={toggleTheme}
+            style={{ border: 'none', fontSize: '1.2rem', padding: '6px 10px' }}
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <button
             className="clear-button"
             onClick={() => { clearHistory(); newChat(); }}
