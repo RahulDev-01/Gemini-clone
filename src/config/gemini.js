@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 // Access the API key from environment variables
 const apiKey = import.meta.env.VITE_API_KEY;
@@ -12,16 +12,16 @@ export default async function main(prompt, downloadImage = false) {
     return msg;
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
     // Use gemini-1.5-flash model (most stable and widely available for Google AI Studio)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
-
-    // Generate content
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Generate content via v1 SDK (@google/genai)
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: prompt
+    });
+    const text = response.text;
 
     console.log(text);
     return text || 'No content generated.';
@@ -35,7 +35,7 @@ export default async function main(prompt, downloadImage = false) {
     } else if (error.message?.includes('quota')) {
       return 'API quota exceeded. Please check your Google AI Studio quota and try again later.';
     } else if (error.message?.includes('not found') || error.message?.includes('404')) {
-      return 'Model not found. Ensure your key has access to gemini-1.5-flash (or use gemini-1.5-flash-latest) and that you are using the latest @google/generative-ai SDK.';
+      return 'Model not found. Ensure your key has access to gemini-1.5-flash and that you are using the @google/genai SDK (v1).';
     }
     
     return 'An error occurred while generating content. Please try again.';
