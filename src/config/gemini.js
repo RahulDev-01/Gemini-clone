@@ -131,12 +131,11 @@ async function tryMultipleModels(prompt, apiKey) {
   return null;
 }
 
-export async function run(prompt) {
-  const apiKey = (import.meta.env.VITE_GOOGLE_AI_API_KEY || '').trim();
-  const apiVersion = import.meta.env.VITE_API_VERSION || 'v1';
+export default async function geminiGenerate(prompt) {
+  const apiKey = (import.meta.env.VITE_API_KEY || import.meta.env.VITE_GOOGLE_AI_API_KEY || '').trim();
 
   if (!apiKey) {
-    return 'Missing API key. Please set VITE_GOOGLE_AI_API_KEY in your .env file.';
+    return 'Missing API key. Please set VITE_API_KEY or VITE_GOOGLE_AI_API_KEY in your .env file.';
   }
 
   try {
@@ -150,6 +149,6 @@ export async function run(prompt) {
     return 'All models failed. This could be due to rate limits (429) or unavailable models (503). Please wait a few minutes and try again.';
   } catch (error) {
     console.error('Error during content generation:', error);
-    return 'An error occurred while generating content. Please try again.';
+    return 'Model not found. Ensure your key has access to gemini-1.5-flash and that you are using the @google/genai SDK (v1).';
   }
 }
