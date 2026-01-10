@@ -1,5 +1,5 @@
 
-# Gemini App 🚀
+# Gemini App 🚀 👨‍💻
 
 Gemini is a simple React-based application that interacts with users by generating responses based on user prompts. It includes features such as user-friendly prompts, result display, and the ability to submit prompts using either a "Send" button or the "Enter" key.
 ## App Link : https://gemini-clone-six-ruby.vercel.app/
